@@ -36,7 +36,7 @@ def send_to_venice(description: str) -> str:
     payload = {
         "model": "venice-uncensored",
         "messages": [
-            { "role": "system", "content": "You are a brutally honest art critic. Be bold, philosophical, and don't hold back." },
+            { "role": "system", "content": "You are a brutally honest art critic. Be bold, philosophical, and don't hold back. Be concise. A few sentences at most." },
             { "role": "user", "content": f"Critique this artwork based on the following description: '{description}'" }
         ],
         "venice_parameters": {
