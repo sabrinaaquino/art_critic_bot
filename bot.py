@@ -71,22 +71,27 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if message.author == client.user or not message.attachments:
+    if message.author == client.user:
         return
+    
+    if client.user in message.mentions:
+        # If there are image attachments, try to process them
+        for attachment in message.attachments:
+            if attachment.content_type and attachment.content_type.startswith("image/"):
+                try:
+                    print(f"Image detected: {attachment.url}")
+                    image_bytes = await attachment.read()
+                    description = describe_image(image_bytes)
+                    print(f"Generated description: {description}")
+                    critique = send_to_venice(description)
+                except Exception as e:
+                    critique = f"Something went wrong: {e}"
 
-    for attachment in message.attachments:
-        if attachment.content_type and attachment.content_type.startswith("image/"):
-            try:
-                print(f"Image detected: {attachment.url}")
-                image_bytes = await attachment.read()
-                description = describe_image(image_bytes)
-                print(f"Generated description: {description}")
-                critique = send_to_venice(description)
-            except Exception as e:
-                critique = f"Something went wrong: {e}"
+                await message.reply(critique)
+                return
 
-            await message.reply(critique)
-            break
+        # If bot was mentioned but no image was found
+        await message.reply("Please attach an image you'd like me to critique.")
 
 # === Run bot ===
 client.run(DISCORD_TOKEN)
