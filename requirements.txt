@@ -2,8 +2,5 @@ discord.py
 python-dotenv
 requests
 torch
-torchvision
-ftfy
-regex
-open_clip_torch
 Pillow
+transformers
