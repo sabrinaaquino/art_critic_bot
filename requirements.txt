@@ -1,6 +1,4 @@
 discord.py
 python-dotenv
 requests
-torch
 Pillow
-transformers

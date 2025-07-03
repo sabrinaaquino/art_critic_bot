@@ -2,11 +2,9 @@ import os
 import base64
 import requests
 import discord
-import torch
 from io import BytesIO
 from PIL import Image
 from dotenv import load_dotenv
-from transformers import BlipProcessor, BlipForConditionalGeneration
 
 # === Load environment ===
 load_dotenv()
@@ -19,27 +17,29 @@ intents.messages = True
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-# === Load BLIP model and processor ===
-device = "cuda" if torch.cuda.is_available() else "cpu"
-processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base").to(device)
-
-# === Image description ===
-def describe_image(image_bytes: bytes) -> str:
-    image = Image.open(BytesIO(image_bytes)).convert("RGB")
-    inputs = processor(images=image, return_tensors="pt").to(device)
-    output = model.generate(**inputs, max_new_tokens=50)
-    return processor.decode(output[0], skip_special_tokens=True)
-
-# === Venice API call ===
-def send_to_venice(description: str) -> str:
+# === Venice API call with image ===
+def send_image_to_venice(image_bytes: bytes, user_message: str = "") -> str:
     url = "https://api.venice.ai/api/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {VENICE_API_KEY}",
         "Content-Type": "application/json"
     }
+    
+    # Convert image to base64
+    image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+
+    # Clean up user message (remove bot mention)
+    clean_message = user_message.replace(f'<@{client.user.id}>', '').strip()
+
+    # Create the text prompt based on user input
+    if clean_message:
+        text_prompt = f"User says: '{clean_message}'. Please critique this artwork accordingly. Be brutally honest and philosophical."
+    else:
+        text_prompt = "Critique this artwork. Be brutally honest and philosophical."
+    
+    
     payload = {
-        "model": "venice-uncensored",
+        "model": "mistral-31-24b",
         "messages": [
             {
                 "role": "system",
@@ -50,7 +50,18 @@ def send_to_venice(description: str) -> str:
             },
             {
                 "role": "user",
-                "content": f"Critique this artwork based on the following description: '{description}'"
+                "content": [
+                    {
+                        "type": "text",
+                        "text": text_prompt
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{image_base64}"
+                        }
+                    }
+                ]
             }
         ],
         "venice_parameters": {
@@ -80,10 +91,9 @@ async def on_message(message):
             if attachment.content_type and attachment.content_type.startswith("image/"):
                 try:
                     print(f"Image detected: {attachment.url}")
+                    print(f"User message: {message.content}")
                     image_bytes = await attachment.read()
-                    description = describe_image(image_bytes)
-                    print(f"Generated description: {description}")
-                    critique = send_to_venice(description)
+                    critique = send_image_to_venice(image_bytes, message.content)
                 except Exception as e:
                     critique = f"Something went wrong: {e}"
 
