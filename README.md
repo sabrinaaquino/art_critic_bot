@@ -44,8 +44,6 @@ discord.py
 python-dotenv
 requests
 Pillow
-transformers
-torch
 ```
 
 4. Run the bot
