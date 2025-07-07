@@ -6,10 +6,8 @@ A brutally honest Discord bot that critiques your art using BLIP for image capti
 ## 🚀 What It Does
 
 1. Listens for messages where it's mentioned
-2. Extracts any attached image
-3. Describes the image using `Salesforce/blip-image-captioning-base`
-4. Sends the description to the Venice API
-5. Replies with a short, poetic, possibly painful critique
+2. Describes the image using the `mistral-31-24b` venice model
+3. Replies with a short, poetic, possibly painful critique
 
 ## 🛠 Setup
 
