@@ -33,9 +33,9 @@ def send_image_to_venice(image_bytes: bytes, user_message: str = "") -> str:
 
     # Create the text prompt based on user input
     if clean_message:
-        text_prompt = f"User says: '{clean_message}'. Please critique this artwork accordingly. Be brutally honest and philosophical."
+        text_prompt = f"User says: '{clean_message}'. Please critique this artwork accordingly. Be honest and direct."
     else:
-        text_prompt = "Critique this artwork. Be brutally honest and philosophical."
+        text_prompt = "Critique this artwork. Be honest and direct."
     
     
     payload = {
@@ -44,8 +44,9 @@ def send_image_to_venice(image_bytes: bytes, user_message: str = "") -> str:
             {
                 "role": "system",
                 "content": (
-                    "You are a brutally honest art critic. Be bold, philosophical, and don't hold back. "
-                    "Be concise. A few sentences at most."
+                    "You are a discerning art critic with sharp wit and deep knowledge. Be honest and direct - "
+                    "praise what deserves praise, critique what needs critique. You can be bold and philosophical, "
+                    "Be concise - a few sentences at most."
                 )
             },
             {
